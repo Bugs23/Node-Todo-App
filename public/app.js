@@ -12,6 +12,12 @@ $(document).ready(function() {
             // Call createTodo function
             createTodo();
         }
+    });
+    
+    // When the span inside the list is clicked
+    $('.list').on('click', 'span', function() {
+        // Call removeTodo function and pass it the entire li element
+        removeTodo($(this).parent());
     })
 });
 
@@ -26,7 +32,9 @@ function addTodos(todos) {
 // Add todos to the list
 function addTodo(todo) {
     // Create a new todo with the value from the name property
-    var newTodo = $('<li class="task">' + todo.name + '</li>');
+    var newTodo = $('<li class="task">' + todo.name + '<span>X</span>' + '</li>');
+    // Store the todo's id
+    newTodo.data('id', todo._id);
     // If the todo is completed
     if (todo.completed) {
         // Add the done class to the todo
@@ -50,3 +58,21 @@ function createTodo() {
         console.log(err);
     });
 }
+
+function removeTodo(todo) {
+    /* Set the clicked id as the todo's (todo is the 
+    $(this).parent() that was passed) data id */
+    var clickedId = todo.data('id');
+    // Set the delete url
+    var deleteUrl = '/api/todos/' + clickedId;
+    // Send delete request
+    $.ajax({
+        method: 'DELETE',
+        url: deleteUrl
+    })
+    // When the request works
+    .then(function(data) {
+        // remove the todo
+        todo.remove();
+    })
+};
