@@ -14,8 +14,16 @@ $(document).ready(function() {
         }
     });
     
+    // When a list item inside the list
+    $('.list').on('click', 'li', function() {
+        // Call updateTodo function and pass it the li that was clicked
+        updateTodo($(this))
+    })
     // When the span inside the list is clicked
-    $('.list').on('click', 'span', function() {
+    $('.list').on('click', 'span', function(e) {
+        /*Stop event from bubbling up so when we click a span it doesn't also trigger
+        the code for a click on an li*/
+        e.stopPropagation();
         // Call removeTodo function and pass it the entire li element
         removeTodo($(this).parent());
     })
@@ -33,8 +41,10 @@ function addTodos(todos) {
 function addTodo(todo) {
     // Create a new todo with the value from the name property
     var newTodo = $('<li class="task">' + todo.name + '<span>X</span>' + '</li>');
-    // Store the todo's id
+    // Store the todo's id #
     newTodo.data('id', todo._id);
+    // Store the todo's completed value
+    newTodo.data('completed', todo.completed);
     // If the todo is completed
     if (todo.completed) {
         // Add the done class to the todo
@@ -67,12 +77,34 @@ function removeTodo(todo) {
     var deleteUrl = '/api/todos/' + clickedId;
     // Send delete request
     $.ajax({
+        // We want to delete the todo
         method: 'DELETE',
+        // This is the location of the todo we want to delete
         url: deleteUrl
     })
     // When the request works
     .then(function(data) {
         // remove the todo
         todo.remove();
+    })
+};
+
+function updateTodo(todo) {
+    // Set url with the todo's id
+    var updateUrl = '/api/todos/' + todo.data('id');
+    /* Get whatever the opposite of the completed value is (true or false) 
+    So if todo data is true (completed) make it false*/
+    var isDone = !todo.data('completed');
+    // Set the updated data to whatever isDone equals
+    var updateData = { completed: isDone }
+    // Send put request
+    $.ajax({
+        method: 'PUT',
+        url: updateUrl,
+        data: updateData
+    })
+    .then(function(updatedTodo) {
+        todo.toggleClass('done');
+        todo.data('completed', isDone)
     })
 };
